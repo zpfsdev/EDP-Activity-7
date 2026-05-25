@@ -36,7 +36,7 @@
             }
         </script>
         <h1>Report Generator</h1>
-        <p>Export database views to analytical formats.</p>
+        <p>Export database views to analytical formats. Select a report to preview data before exporting.</p>
 
         <form action="/api/reports/generate" method="POST" name="reportForm" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; margin-top: 2rem;">
             <div class="input-group" style="flex: 1; min-width: 250px; margin-bottom: 0;">
@@ -59,7 +59,8 @@
         </form>
 
         <div class="grid-container" id="gridContainer" style="display: none;">
-            <h2 id="gridTitle" style="margin-bottom: 1rem;">Data Preview</h2>
+            <h2 id="gridTitle" style="margin-bottom: 0.25rem;">Data Preview</h2>
+            <p id="rowCount" style="margin-bottom: 1rem;"></p>
             <table id="dataTable">
                 <thead>
                     <tr id="tableHead"></tr>
@@ -70,6 +71,7 @@
     </main>
     <footer class="meta-info" style="margin-top: 5rem;">
         <span>Extraction module</span>
+        <span>Updated by ZsannyBoi</span>
     </footer>
 
     <script>
@@ -109,6 +111,7 @@
                     });
 
                     document.getElementById('gridContainer').style.display = 'block';
+                    document.getElementById('rowCount').textContent = result.data.length + ' record(s) found.';
                 }
             } catch (err) {
                 console.error("Failed to fetch data preview", err);
