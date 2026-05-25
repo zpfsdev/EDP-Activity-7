@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - GameStore</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="top-nav">
+        <a href="dashboard.html" class="brand">GameStore</a>
+        <ul class="nav-links">
+            <li><a href="dashboard.html" class="active">Overview</a></li>
+            <li class="admin-only"><a href="user-management.html">Users</a></li>
+            <li><a href="store.html">Store</a></li>
+            <li class="admin-only"><a href="report-generator.html">Reports</a></li>
+            <li><a href="login.html">Sign Out</a></li>
+        </ul>
+    </nav>
+    <script>
+        // RBAC UI Toggle
+        const cookies = document.cookie.split(';').reduce((acc, c) => {
+            const [k, v] = c.trim().split('=');
+            acc[k] = v; return acc;
+        }, {});
+        if (cookies.role !== 'admin') {
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+            // Hide admin stats if you wanted, but for this project let's just hide the nav links
+        }
+    </script>
+    <main>
+        <h1>System Overview</h1>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h3>Total Games</h3>
+                <p class="metric-value" id="totalGames">-</p>
+            </div>
+            <div class="metric-card">
+                <h3>Active Users</h3>
+                <p class="metric-value" id="activeUsers">-</p>
+            </div>
+            <div class="metric-card">
+                <h3>System Revenue (PHP)</h3>
+                <p class="metric-value" id="systemRevenue">₱0.00</p>
+            </div>
+        </div>
+        
+        <h2>Recent Activity Log</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Log ID</th>
+                    <th>Action</th>
+                    <th>Table</th>
+                    <th>Timestamp</th>
+                </tr>
+            </thead>
+            <tbody id="activityTableBody">
+                <tr><td colspan="4">Loading activity...</td></tr>
+            </tbody>
+        </table>
+    </main>
+
+    <script>
+        // Fetch dashboard metrics
+        fetch('/api/dashboard/metrics')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('totalGames').textContent = data.totalGames.toLocaleString();
+                document.getElementById('activeUsers').textContent = data.activeUsers.toLocaleString();
+                document.getElementById('systemRevenue').textContent = '₱' + data.systemRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            });
+
+        // Fetch activity log
+        fetch('/api/dashboard/activity')
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById('activityTableBody');
+                tbody.innerHTML = '';
+                if(data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4">No recent activity.</td></tr>';
+                    return;
+                }
+                data.forEach(log => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${log.log_id}</td>
+                            <td>${log.action}</td>
+                            <td>${log.table_name}</td>
+                            <td>${log.timestamp}</td>
+                        </tr>
+                    `;
+                });
+            });
+    </script>
+</body>
+</html>

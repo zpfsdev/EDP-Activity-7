@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - GameStore</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .grid-container {
+            margin-top: 3rem;
+            width: 100%;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <nav class="top-nav">
+        <a href="dashboard.html" class="brand">GameStore</a>
+        <ul class="nav-links">
+            <li><a href="dashboard.html">Overview</a></li>
+            <li class="admin-only"><a href="user-management.html">Users</a></li>
+            <li><a href="store.html">Store</a></li>
+            <li class="admin-only"><a href="report-generator.html" class="active">Reports</a></li>
+            <li><a href="login.html">Sign Out</a></li>
+        </ul>
+    </nav>
+    <main>
+        <script>
+            // RBAC Check: Ensure user is admin
+            const cookies = document.cookie.split(';').reduce((acc, c) => {
+                const [k, v] = c.trim().split('=');
+                acc[k] = v; return acc;
+            }, {});
+            if (cookies.role !== 'admin') {
+                window.location.href = 'dashboard.html';
+            }
+        </script>
+        <h1>Report Generator</h1>
+        <p>Export database views to analytical formats.</p>
+
+        <form action="/api/reports/generate" method="POST" name="reportForm" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; margin-top: 2rem;">
+            <div class="input-group" style="flex: 1; min-width: 250px; margin-bottom: 0;">
+                <label for="reportType">Select View / Data Source</label>
+                <select id="reportType" name="reportType" required>
+                    <option value="">-- Select Report --</option>
+                    <option value="companysalesreport">Company Sales Report</option>
+                    <option value="mostpopulargames">Most Popular Games</option>
+                    <option value="topratedgames">Top Rated Games</option>
+                </select>
+            </div>
+            <div class="input-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                <label for="exportFormat">Export Format</label>
+                <select id="exportFormat" name="exportFormat" required>
+                    <option value="excel">MS Excel (.xlsx)</option>
+                    <option value="csv">CSV Document (.csv)</option>
+                </select>
+            </div>
+            <button type="submit" class="btn" style="width: auto;">Export Report</button>
+        </form>
+
+        <div class="grid-container" id="gridContainer" style="display: none;">
+            <h2 id="gridTitle" style="margin-bottom: 1rem;">Data Preview</h2>
+            <table id="dataTable">
+                <thead>
+                    <tr id="tableHead"></tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </main>
+    <footer class="meta-info" style="margin-top: 5rem;">
+        <span>Extraction module</span>
+    </footer>
+
+    <script>
+        document.getElementById('reportType').addEventListener('change', async function() {
+            const reportType = this.value;
+            if (!reportType) {
+                document.getElementById('gridContainer').style.display = 'none';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/reports/data?reportType=' + reportType);
+                const result = await res.json();
+
+                if (result.success) {
+                    const thead = document.getElementById('tableHead');
+                    const tbody = document.getElementById('tableBody');
+                    thead.innerHTML = '';
+                    tbody.innerHTML = '';
+
+                    // Create Headers
+                    result.columns.forEach(col => {
+                        const th = document.createElement('th');
+                        th.textContent = col;
+                        thead.appendChild(th);
+                    });
+
+                    // Create Rows
+                    result.data.forEach(rowData => {
+                        const tr = document.createElement('tr');
+                        result.columns.forEach(col => {
+                            const td = document.createElement('td');
+                            td.textContent = rowData[col];
+                            tr.appendChild(td);
+                        });
+                        tbody.appendChild(tr);
+                    });
+
+                    document.getElementById('gridContainer').style.display = 'block';
+                }
+            } catch (err) {
+                console.error("Failed to fetch data preview", err);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - GameStore</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .action-btns { display: flex; gap: 0.5rem; }
+    </style>
+</head>
+<body>
+    <nav class="top-nav">
+        <a href="dashboard.html" class="brand">GameStore</a>
+        <ul class="nav-links">
+            <li><a href="dashboard.html">Overview</a></li>
+            <li class="admin-only"><a href="user-management.html" class="active">Users</a></li>
+            <li><a href="store.html">Store</a></li>
+            <li class="admin-only"><a href="report-generator.html">Reports</a></li>
+            <li><a href="login.html">Sign Out</a></li>
+        </ul>
+    </nav>
+    <main>
+        <script>
+            // RBAC Check: Ensure user is admin
+            const cookies = document.cookie.split(';').reduce((acc, c) => {
+                const [k, v] = c.trim().split('=');
+                acc[k] = v; return acc;
+            }, {});
+            if (cookies.role !== 'admin') {
+                window.location.href = 'dashboard.html';
+            }
+        </script>
+        <h1>User Management</h1>
+        <p>Add, update, and manage system accounts.</p>
+        
+        <div class="grid">
+            <div>
+                <h2>Add Account</h2>
+                <form action="/api/users/add" method="POST">
+                    <div class="input-group">
+                        <label>Username</label>
+                        <input type="text" name="username" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Email</label>
+                        <input type="email" name="email" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Role</label>
+                        <select name="role">
+                            <option value="user">User</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn">Create User</button>
+                </form>
+            </div>
+
+            <div>
+                <h2>Update Profile</h2>
+                <form action="/api/users/update" method="POST">
+                    <div class="input-group">
+                        <label>User ID (to update)</label>
+                        <input type="number" name="user_id" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); font-family: inherit;" required>
+                    </div>
+                    <div class="input-group">
+                        <label>New Username</label>
+                        <input type="text" name="username" required>
+                    </div>
+                    <div class="input-group">
+                        <label>New Email</label>
+                        <input type="email" name="email" required>
+                    </div>
+                    <button type="submit" class="btn btn-outline">Update Details</button>
+                </form>
+            </div>
+        </div>
+
+        <h2>Account Directory</h2>
+        <form action="/user-management.html" method="GET" style="display: flex; gap: 1rem; align-items: flex-end;">
+            <div class="input-group" style="flex-grow: 1; margin-bottom: 0;">
+                <label>Search Directory</label>
+                <input type="text" name="search" placeholder="Search by username or email...">
+            </div>
+            <button type="submit" class="btn" style="width: auto;">Search</button>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="userTableBody">
+                <!-- Data populated by JS fetch -->
+                <tr><td colspan="6">Loading users...</td></tr>
+            </tbody>
+        </table>
+    </main>
+
+    <script>
+        // Fetch users from API and populate table
+        const urlParams = new URLSearchParams(window.location.search);
+        const search = urlParams.get('search') || '';
+        
+        fetch(`/api/users/search?q=${search}`)
+            .then(res => res.json())
+            .then(users => {
+                const tbody = document.getElementById('userTableBody');
+                tbody.innerHTML = '';
+                if(users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6">No users found.</td></tr>';
+                    return;
+                }
+                users.forEach(u => {
+                    const statusColor = u.status === 'active' ? '#166534' : '#991b1b';
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${u.user_id}</td>
+                            <td>${u.username}</td>
+                            <td>${u.email}</td>
+                            <td>${u.role}</td>
+                            <td style="color: ${statusColor}; font-weight: 600;">${u.status.toUpperCase()}</td>
+                            <td class="action-btns">
+                                <form action="/api/users/status" method="POST" style="margin: 0; display:inline;">
+                                    <input type="hidden" name="user_id" value="${u.user_id}">
+                                    <input type="hidden" name="status" value="active">
+                                    <button type="submit" style="background: transparent; border: 1px solid var(--border); font-size: 0.75rem; padding: 0.25rem 0.5rem; cursor:pointer;">ACTIVATE</button>
+                                </form>
+                                <form action="/api/users/status" method="POST" style="margin: 0; display:inline;">
+                                    <input type="hidden" name="user_id" value="${u.user_id}">
+                                    <input type="hidden" name="status" value="inactive">
+                                    <button type="submit" style="background: transparent; border: 1px solid var(--border); font-size: 0.75rem; padding: 0.25rem 0.5rem; cursor:pointer;">DEACTIVATE</button>
+                                </form>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+    </script>
+</body>
+</html>

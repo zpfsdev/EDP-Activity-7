@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About System</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <nav class="top-nav">
+    <a href="dashboard.html" class="brand">GameStore</a>
+    <ul class="nav-links">
+      <li><a href="dashboard.html">Overview</a></li>
+      <li><a href="report-generator.html">Reports</a></li>
+      <li><a href="about.html" class="active">About</a></li>
+      <li><a href="login.html">Sign Out</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <h1>System overview</h1>
+
+    <h2>Architecture</h2>
+    <p>
+      This website has been designed to act as a frontend to the backend SQL database.
+      It employs standard HTML form transmission protocols natively routing
+      through POST methodology.
+    </p>
+
+    <h2>Database</h2>
+    <p>
+      The architecture maps robustly across all core base entities including Users, Games, Companies, Purchases, and Reviews.
+    </p>
+    <p>
+      System-level data manipulation is actively monitored via embedded trigger protocols populating the <code>activity_log</code>. For reporting, complex analytics are exposed through structured logical views such as <code>companysalesreport</code>, <code>mostpopulargames</code>, and <code>topratedgames</code>.
+    </p>
+  </main>
+
+  <footer class="meta-info" style="margin-top: 5rem;">
+    <span>System Specification</span>
+  </footer>
+</body>
+</html>

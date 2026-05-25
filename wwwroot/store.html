@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Store Utilities - GameStore</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .result-box { margin-top: 1rem; padding: 1rem; display: none; font-weight: 600; text-align: center; }
+        .result-success { background-color: #f0fdf4; color: #166534; border: 1px solid #16a34a; display: block; }
+        .result-error { background-color: #fef2f2; color: #991b1b; border: 1px solid #dc2626; display: block; }
+        .rating-display { font-size: 3rem; font-weight: 300; text-align: center; color: var(--accent); margin: 1rem 0; }
+    </style>
+</head>
+<body>
+    <nav class="top-nav">
+        <a href="dashboard.html" class="brand">GameStore</a>
+        <ul class="nav-links">
+            <li><a href="dashboard.html">Overview</a></li>
+            <li class="admin-only"><a href="user-management.html">Users</a></li>
+            <li><a href="store.html" class="active">Store</a></li>
+            <li class="admin-only"><a href="report-generator.html">Reports</a></li>
+            <li><a href="login.html">Sign Out</a></li>
+        </ul>
+    </nav>
+    <script>
+        // RBAC UI Toggle
+        const cookies = document.cookie.split(';').reduce((acc, c) => {
+            const [k, v] = c.trim().split('=');
+            acc[k] = v; return acc;
+        }, {});
+        if (cookies.role !== 'admin') {
+            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+        }
+    </script>
+    <main>
+        <h1>Store Utilities</h1>
+        <p>Checkout simulations and public game ratings.</p>
+        
+        <div class="grid">
+            <div>
+                <h2>New Customer Checkout</h2>
+                <form id="purchaseForm">
+                    <div class="input-group">
+                        <label>Username</label>
+                        <input type="text" name="username" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Email</label>
+                        <input type="email" name="email" required>
+                    </div>
+                    <div class="grid" style="gap: 1rem; margin-bottom: 0;">
+                        <div class="input-group">
+                            <label>Age</label>
+                            <input type="number" name="age" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); font-family: inherit;" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Country</label>
+                            <input type="text" name="country" required>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Select Game</label>
+                        <select id="gameSelect" name="gameId" required>
+                            <option value="">Loading games...</option>
+                        </select>
+                    </div>
+                    <div class="grid" style="gap: 1rem; margin-bottom: 0;">
+                        <div class="input-group">
+                            <label>Amount Paid ($)</label>
+                            <input type="number" step="0.01" name="amount" id="amountInput" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); font-family: inherit; background-color: #f5f5f5; color: #6b7280; pointer-events: none;" readonly required>
+                        </div>
+                        <div class="input-group">
+                            <label>Payment Method</label>
+                            <select name="paymentMethod" required>
+                                <option value="Credit Card">Credit Card</option>
+                                <option value="Debit Card">Debit Card</option>
+                                <option value="PayPal">PayPal</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Complete Purchase</button>
+                    <div id="purchaseResult" class="result-box"></div>
+                </form>
+            </div>
+
+            <div>
+                <h2>Game Rating Check</h2>
+                <form id="ratingForm">
+                    <div class="input-group">
+                        <label>Exact Game Title</label>
+                        <input type="text" name="title" placeholder="e.g. Zelda: Breath of the Wild" required>
+                    </div>
+                    <button type="submit" class="btn btn-outline">Fetch Rating</button>
+                    <div id="ratingResult" class="result-box"></div>
+                </form>
+            </div>
+        </div>
+
+        <div class="grid" style="margin-top: 2rem;">
+            <div>
+                <h2>Leave a Review</h2>
+                <form id="reviewForm">
+                    <div class="input-group">
+                        <label>Username</label>
+                        <input type="text" name="username" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Select Game</label>
+                        <select id="reviewGameSelect" name="gameId" required>
+                            <option value="">Loading games...</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Rating (1-5)</label>
+                        <input type="number" name="rating" min="1" max="5" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); font-family: inherit;">
+                    </div>
+                    <div class="input-group">
+                        <label>Review Text</label>
+                        <textarea name="reviewText" rows="3" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); font-family: inherit; border-radius: 0.5rem;"></textarea>
+                    </div>
+                    <button type="submit" class="btn">Submit Review</button>
+                    <div id="reviewResult" class="result-box"></div>
+                </form>
+            </div>
+
+            <div class="admin-only">
+                <h2>Add New Game (Inventory)</h2>
+                <form id="addGameForm">
+                    <div class="input-group">
+                        <label>Game Title</label>
+                        <input type="text" name="title" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Company</label>
+                        <select id="companySelect" name="companyId" required>
+                            <option value="">Loading companies...</option>
+                        </select>
+                    </div>
+                    <div class="grid" style="gap: 1rem; margin-bottom: 0;">
+                        <div class="input-group">
+                            <label>Genre</label>
+                            <input type="text" name="genre" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Release Year</label>
+                            <input type="number" name="releaseYear" min="1950" max="2100" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); font-family: inherit;">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Price ($)</label>
+                        <input type="number" step="0.01" name="price" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); font-family: inherit;">
+                    </div>
+                    <button type="submit" class="btn btn-outline">Add Game to Inventory</button>
+                    <div id="addGameResult" class="result-box"></div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Load games for dropdown
+        fetch('/api/store/games')
+            .then(res => res.json())
+            .then(games => {
+                const select = document.getElementById('gameSelect');
+                const reviewSelect = document.getElementById('reviewGameSelect');
+                select.innerHTML = '<option value="">-- Select a Game --</option>';
+                reviewSelect.innerHTML = '<option value="">-- Select a Game --</option>';
+                games.forEach(g => {
+                    const option = document.createElement('option');
+                    option.value = g.id;
+                    option.textContent = g.title + ' ($' + g.price + ')';
+                    option.dataset.price = g.price;
+                    select.appendChild(option);
+                    
+                    const reviewOption = document.createElement('option');
+                    reviewOption.value = g.id;
+                    reviewOption.textContent = g.title;
+                    reviewSelect.appendChild(reviewOption);
+                });
+            });
+
+        // Load companies for dropdown
+        fetch('/api/store/companies')
+            .then(res => res.json())
+            .then(companies => {
+                const select = document.getElementById('companySelect');
+                if (select) {
+                    select.innerHTML = '<option value="">-- Select a Company --</option>';
+                    companies.forEach(c => {
+                        const option = document.createElement('option');
+                        option.value = c.id;
+                        option.textContent = c.name;
+                        select.appendChild(option);
+                    });
+                }
+            });
+
+        // Auto-fill price when game selected (readonly)
+        document.getElementById('gameSelect').addEventListener('change', function() {
+            const selected = this.options[this.selectedIndex];
+            if (selected && selected.dataset.price) {
+                document.getElementById('amountInput').value = selected.dataset.price;
+            } else {
+                document.getElementById('amountInput').value = '';
+            }
+        });
+
+        // Handle Purchase Submit
+        document.getElementById('purchaseForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const resultBox = document.getElementById('purchaseResult');
+            
+            try {
+                const res = await fetch('/api/store/purchase', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                
+                resultBox.className = 'result-box ' + (data.success ? 'result-success' : 'result-error');
+                resultBox.textContent = data.message;
+                
+                if(data.success) {
+                    e.target.reset();
+                }
+            } catch (err) {
+                resultBox.className = 'result-box result-error';
+                resultBox.textContent = 'Connection error.';
+            }
+        });
+
+        // Handle Rating Submit
+        document.getElementById('ratingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = e.target.title.value;
+            const resultBox = document.getElementById('ratingResult');
+            
+            try {
+                const res = await fetch('/api/store/rating?title=' + encodeURIComponent(title));
+                const data = await res.json();
+                
+                if (data.success) {
+                    resultBox.className = 'result-box result-success';
+                    resultBox.innerHTML = `Average Rating for ${data.title}:<br><div class="rating-display">${data.rating.toFixed(1)} / 5</div>`;
+                } else {
+                    resultBox.className = 'result-box result-error';
+                    resultBox.textContent = data.message;
+                }
+            } catch (err) {
+                resultBox.className = 'result-box result-error';
+                resultBox.textContent = 'Connection error.';
+            }
+        });
+
+        // Handle Review Submit
+        document.getElementById('reviewForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const resultBox = document.getElementById('reviewResult');
+            
+            try {
+                const res = await fetch('/api/store/review', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                
+                resultBox.className = 'result-box ' + (data.success ? 'result-success' : 'result-error');
+                resultBox.textContent = data.message;
+                
+                if(data.success) {
+                    e.target.reset();
+                }
+            } catch (err) {
+                resultBox.className = 'result-box result-error';
+                resultBox.textContent = 'Connection error.';
+            }
+        });
+
+        // Handle Add Game Submit
+        document.getElementById('addGameForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const resultBox = document.getElementById('addGameResult');
+            
+            try {
+                const res = await fetch('/api/store/game', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                
+                resultBox.className = 'result-box ' + (data.success ? 'result-success' : 'result-error');
+                resultBox.textContent = data.message;
+                
+                if(data.success) {
+                    e.target.reset();
+                }
+            } catch (err) {
+                resultBox.className = 'result-box result-error';
+                resultBox.textContent = 'Connection error.';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - GameStore</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="login-container">
+        <h1>GameStore</h1>
+        <form action="/api/auth/login" method="POST" name="loginForm">
+            <div class="input-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn">Sign In</button>
+        </form>
+        <div style="margin-top: 1.5rem; text-align: center;">
+            <a href="password-recovery.html">Forgot Password?</a>
+        </div>
+    </main>
+
+    <script>
+        // Clear RBAC cookies on sign out
+        document.cookie = "role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        document.cookie = "username=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        
+        // Show error msg if any
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.get('error') === 'invalid') {
+            const err = document.createElement('p');
+            err.style.color = '#991b1b';
+            err.textContent = 'Invalid credentials or inactive account.';
+            document.querySelector('form').prepend(err);
+        }
+        if(urlParams.get('recovered') === 'true') {
+            const msg = document.createElement('p');
+            msg.style.color = '#166534';
+            msg.textContent = 'Password reset to defaultpass.';
+            document.querySelector('form').prepend(msg);
+        }
+    </script>
+</body>
+</html>
